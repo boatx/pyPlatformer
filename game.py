@@ -1,40 +1,20 @@
-from pygame.locals import *
-from character import LoadPng, Character
-import pygame
-#import random as pyrandom
-#import math
 import sys
+import pygame
+from pygame.locals import *
 
-#odswierzanie
-TARGET_FPS = 50
-#krok czasowy
-TIME_STEP = 1.0/TARGET_FPS
-#rozdzielczosc
-SCREEN_WIDTH=800
-SCREEN_HEIGHT=600
-#debugowanie
-DEBUG_SPRITE=0
-
-#dzwiek
-FREQ = 44100   # same as audio CD
-BITSIZE = -16  # unsigned 16 bit
-CHANNELS = 2   # 1 == mono, 2 == stereo
-BUFFER = 1024  # audio buffer size in no. of samples
-FRAMERATE = 30 # how often to check if playback has finished
-
-
-PI = 3.1416
+from character import LoadPng, Character
+from config.settings import SCREEN_HEIGHT, SCREEN_WIDTH, TARGET_FPS
 
 
 def main():
     # Inicijalizacja obrazu
     pygame.init()
-    screen = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT))
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption('The Game')
-    tloimg,tlorect = LoadPng("gra_bg.png")
-    screen.blit(tloimg,(0,0))
+    bg_img, bg_rect = LoadPng("gra_bg.png")
+    screen.blit(bg_img, (0, 0))
     hero = Character(screen.get_rect())
-    allsprites = pygame.sprite.RenderPlain(hero)
+    all_sprites = pygame.sprite.RenderPlain(hero)
     clock = pygame.time.Clock()
 
     active = 1
@@ -59,15 +39,12 @@ def main():
                     hero.stop()
             else:
                 pass
-                #player2.eventGet(event)
-                #player1.eventGet(event)
-        try:
-            clock.tick(TARGET_FPS)
-        except:
-            pass
-        allsprites.update()
-        screen.blit(tloimg,(0,0))
-        allsprites.draw(screen)
+
+        clock.tick(TARGET_FPS)
+
+        all_sprites.update()
+        screen.blit(bg_img, (0, 0))
+        all_sprites.draw(screen)
         pygame.display.flip()
 
 if __name__ == '__main__':

@@ -3,7 +3,7 @@ import pygame
 
 def LoadPng(name):
     """Ladowanie obrazow"""
-    fullname = os.path.join('data','img', name)
+    fullname = os.path.join('data', 'img', name)
     try:
         image = pygame.image.load(fullname)
         if image.get_alpha is None:
