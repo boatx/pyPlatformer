@@ -1,8 +1,10 @@
 import os
 import pygame
 
-def LoadPng(name):
-    """Ladowanie obrazow"""
+
+def load_image(name):
+    """Load image."""
+
     fullname = os.path.join('data', 'img', name)
     try:
         image = pygame.image.load(fullname)
@@ -10,7 +12,7 @@ def LoadPng(name):
             image = image.convert()
         else:
             image = image.convert_alpha()
-    except pygame.error, message:
-        print 'Nie moge zaladowac obrazu:', fullname
-        raise SystemExit, message
+    except pygame.error as e:
+        print('File load has failed:{}'.formt(fullname))
+        raise SystemExit(e.message)
     return image, image.get_rect()
