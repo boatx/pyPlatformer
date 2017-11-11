@@ -3,8 +3,8 @@ import sys
 import pygame
 from pygame.locals import KEYDOWN, KEYUP, K_ESCAPE, K_LEFT, K_RIGHT, K_UP, QUIT
 
-from character import load_image, Character
-from config.settings import SCREEN_HEIGHT, SCREEN_WIDTH, TARGET_FPS
+from pyplatformer.character import load_image, Character
+from pyplatformer.config.settings import SCREEN_HEIGHT, SCREEN_WIDTH, TARGET_FPS
 
 
 class Game:

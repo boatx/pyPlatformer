@@ -1,7 +1,7 @@
 from pygame import sprite, transform
 
-from config.const import GRAVITY
-from helpfun import load_image
+from pyplatformer.config.const import GRAVITY
+from pyplatformer.helpfun import load_image
 
 
 class Character(sprite.Sprite):
@@ -29,8 +29,8 @@ class Character(sprite.Sprite):
         self.vel_y = 0.0
         self.orientation = "right"
         self.speed = 1
-        self.speed_max = 9
-        self.speed_increase = 0.5
+        self.speed_max = 5
+        self.speed_increase = 0.2
         self.jump_speed = -20
         self.counter = 0
 
