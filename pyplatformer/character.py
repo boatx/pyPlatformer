@@ -39,8 +39,6 @@ class Character(sprite.Sprite):
         self.image = self.images[self.state][self.orientation]
         self.rect = self.rect_sprite
         self.rect.midbottom = area.midbottom
-        self.x = self.rect.x
-        self.y = self.rect.y
         self.vel_x = 0.0
         self.vel_y = 0.0
         self.speed = self.DEFAULT_SPEED
