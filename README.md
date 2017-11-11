@@ -6,6 +6,6 @@ Pygame playground, movable character.
 
 ```bash
 
-python game.py
+python main.py
 
 ```
