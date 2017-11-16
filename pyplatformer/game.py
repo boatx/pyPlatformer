@@ -57,8 +57,8 @@ class Game:
     def run(self):
         self.initialize_screen()
         self.create_sprites()
-        clock = pygame.time.Clock()
 
+        clock = pygame.time.Clock()
         while True:
             for event in pygame.event.get():
                 self.handle_events(event)

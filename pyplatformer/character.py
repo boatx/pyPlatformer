@@ -23,72 +23,30 @@ def change_img_orientation(img, orientation=Orientation.LEFT):
     return transform.flip(img, orientation.value, 0)
 
 
-class Character(sprite.Sprite):
+class CharacterLogic:
     """Character class"""
 
-    COUNTER_DIVIDER = 10
     DEFAULT_SPEED = 1
 
-    def __init__(self, area):
+    def __init__(self, area=None, rect=None):
         super().__init__()
-
         self.area = area
         self.state = State.NORMAL
         self.orientation = Orientation.RIGHT
-        self.images, self.rect_sprite = self.load_images()
-        self.image = self.images[self.state][self.orientation]
-        self.rect = self.rect_sprite
-        self.rect.midbottom = area.midbottom
+        self.rect = rect
         self.vel_x = 0.0
         self.vel_y = 0.0
         self.speed = self.DEFAULT_SPEED
         self.speed_max = 5
         self.speed_increase = 0.2
         self.jump_speed = -20
-        self.counter = 0
-
-    def load_images(self):
-        images = defaultdict(dict)
-        img, rect = load_image("normal.png")
-        images[State.NORMAL][Orientation.RIGHT] = img
-        images[State.NORMAL][Orientation.LEFT] = change_img_orientation(img)
-
-        img, _ = load_image("jump.png")
-        images[State.JUMP][Orientation.RIGHT] = img
-        images[State.JUMP][Orientation.LEFT] = change_img_orientation(img)
-        images[State.DOUBLE_JUMP] = images[State.JUMP]
-
-        img1, _ = load_image("walk1.png")
-        img2, _ = load_image("walk2.png")
-        images[State.WALK][Orientation.RIGHT] = [img1, img2]
-        images[State.WALK][Orientation.LEFT] = [
-            change_img_orientation(img1), change_img_orientation(img2)]
-
-        return images, rect
 
     @property
     def is_in_air(self):
         return self.state in (State.JUMP, State.DOUBLE_JUMP)
 
-    def update_image(self, frame=None):
-        image = self.images[self.state][self.orientation]
-
-        if isinstance(image, list):
-            image = self.select_frame(image, frame=frame)
-
-        self.image = image
-
-    def select_frame(self, image, frame=None):
-        if frame is not None:
-            self.counter = 0
-            return image[frame]
-        if self.counter == self.COUNTER_DIVIDER*len(image):
-            self.counter = 0
-        index = self.counter // self.COUNTER_DIVIDER
-        self.counter += 1
-        return image[index]
-
     def update(self):
+        super().update()
         if self.is_in_air:
             # gravity
             self.vel_y += GRAVITY
@@ -103,8 +61,6 @@ class Character(sprite.Sprite):
             self.rect.bottom = self.area.bottom
             self.vel_y = 0
             self.state = State.NORMAL if self.vel_x == 0 else State.WALK
-
-        self.update_image()
 
     def move(self, vel_x):
         self.vel_x = vel_x
@@ -134,3 +90,58 @@ class Character(sprite.Sprite):
         self.speed = self.DEFAULT_SPEED
         if not self.is_in_air:
             self.state = State.NORMAL
+
+
+class Character(CharacterLogic, sprite.Sprite):
+    """Character class"""
+
+    COUNTER_DIVIDER = 10
+    DEFAULT_SPEED = 1
+
+    def __init__(self, area):
+        super().__init__(area)
+        self.images, self.rect = self.load_images()
+        self.image = self.images[self.state][self.orientation]
+        self.rect.midbottom = area.midbottom
+        self.counter = 0
+
+    def load_images(self):
+        images = defaultdict(dict)
+        img, rect = load_image("normal.png")
+        images[State.NORMAL][Orientation.RIGHT] = img
+        images[State.NORMAL][Orientation.LEFT] = change_img_orientation(img)
+
+        img, _ = load_image("jump.png")
+        images[State.JUMP][Orientation.RIGHT] = img
+        images[State.JUMP][Orientation.LEFT] = change_img_orientation(img)
+        images[State.DOUBLE_JUMP] = images[State.JUMP]
+
+        img1, _ = load_image("walk1.png")
+        img2, _ = load_image("walk2.png")
+        images[State.WALK][Orientation.RIGHT] = [img1, img2]
+        images[State.WALK][Orientation.LEFT] = [
+            change_img_orientation(img1), change_img_orientation(img2)]
+
+        return images, rect
+
+    def update_image(self, frame=None):
+        image = self.images[self.state][self.orientation]
+
+        if isinstance(image, list):
+            image = self.select_frame(image, frame=frame)
+
+        self.image = image
+
+    def select_frame(self, image, frame=None):
+        if frame is not None:
+            self.counter = 0
+            return image[frame]
+        if self.counter == self.COUNTER_DIVIDER*len(image):
+            self.counter = 0
+        index = self.counter // self.COUNTER_DIVIDER
+        self.counter += 1
+        return image[index]
+
+    def update(self):
+        super().update()
+        self.update_image()
