@@ -41,12 +41,19 @@ class CharacterLogic:
         self.speed_increase = 0.2
         self.jump_speed = -20
 
+    def dump(self):
+        return {
+            'state': self.state.value,
+            'orientation': self.orientation.value,
+            'rect': list(self.rect)
+        }
+
     @property
     def is_in_air(self):
         return self.state in (State.JUMP, State.DOUBLE_JUMP)
 
     def update(self):
-        super().update()
+        # super().update()
         if self.is_in_air:
             # gravity
             self.vel_y += GRAVITY
