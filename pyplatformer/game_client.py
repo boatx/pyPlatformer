@@ -17,10 +17,10 @@ class GameClient:
     DEFAULT_BACKGROUND = "gra_bg.png"
 
     def __init__(self):
-        self.hero = None
+        self.hero = {}
         self.screen = None
         self.back_ground = None
-        self.sprites = None
+        self.sprites = pygame.sprite.RenderPlain()
         self.socket = None
         self.message_queue = Queue()
 
@@ -48,14 +48,19 @@ class GameClient:
     def draw_empty_screen(self):
         self.screen.blit(self.back_ground, (0, 0))
 
-    def create_sprites(self):
-        self.hero = Character(self.screen.get_rect())
-        self.sprites = pygame.sprite.RenderPlain(self.hero)
+    def create_sprite(self, obj_id):
+        hero = Character(area=self.screen.get_rect(), obj_id=obj_id)
+        self.sprites.add(hero)
+        self.hero[hero.obj_id] = hero
+        return hero
 
     def redraw_scene(self, message):
-        self.hero.orientation = Orientation(message['orientation'])
-        self.hero.state = State(message['state'])
-        self.hero.rect = pygame.Rect(message['rect'])
+        for sprite in message.get('objects', []):
+            log.info(sprite)
+            hero = self.hero.get(sprite['id']) or self.create_sprite(sprite['id'])
+            hero.orientation = Orientation(sprite['orientation'])
+            hero.state = State(sprite['state'])
+            hero.rect = pygame.Rect(sprite['rect'])
         self.sprites.update()
         self.draw_empty_screen()
         self.sprites.draw(self.screen)
@@ -65,8 +70,7 @@ class GameClient:
         while True:
             if self.socket:
                 message = await self.socket.receive_json()
-                if message and message['objects']:
-                    message = message['objects'][0]
+                if message:
                     self.message_queue.put(message)
             await asyncio.sleep(1/60)
 

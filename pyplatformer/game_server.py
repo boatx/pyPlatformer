@@ -11,12 +11,15 @@ log = logging.getLogger(__name__)
 
 
 class GameServer:
-    AREA = pygame.Rect([0, 0, 800, 600])
-    RECT = pygame.Rect([392, 568, 16, 32])
+    AREA = (0, 0, 800, 600)
+    RECT = (392, 568, 16, 32)
 
     def __init__(self, loop=None):
         self.loop = loop or asyncio.get_event_loop()
         self.players = {}
+
+    def create_character(self):
+        return CharacterLogic(pygame.Rect(self.AREA), pygame.Rect(self.RECT))
 
     async def handle_message(self, character_object, message):
         action = message['action']
@@ -49,15 +52,15 @@ class GameServer:
         self.loop.create_task(self.send_handler())
 
     async def input_handler(self, request):
-        log.info('connection from:{} '.format(request.host))
         ws = web.WebSocketResponse()
         await ws.prepare(request)
-        character_object = CharacterLogic(self.AREA, self.RECT)
-        self.players[request.host] = {
+        character_object = self.create_character()
+        self.players[character_object.obj_id] = {
             'socket': ws, 'object': character_object}
-
+        log.info('created: {}'.format(character_object.obj_id))
         async for msg in ws:
             if msg.type == WSMsgType.TEXT:
+                log.info('{} {}'.format(character_object.obj_id, msg.json()))
                 await self.handle_message(character_object, msg.json())
             elif msg.type == WSMsgType.ERROR:
                 log.error('ws connection closed with exception {}'.format(
