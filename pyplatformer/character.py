@@ -1,5 +1,6 @@
 from collections import defaultdict
 from enum import Enum
+from uuid import uuid1
 
 from pygame import sprite, transform
 
@@ -28,7 +29,7 @@ class CharacterLogic:
 
     DEFAULT_SPEED = 1
 
-    def __init__(self, area=None, rect=None):
+    def __init__(self, area=None, rect=None, obj_id=None):
         super().__init__()
         self.area = area
         self.state = State.NORMAL
@@ -40,9 +41,11 @@ class CharacterLogic:
         self.speed_max = 5
         self.speed_increase = 0.2
         self.jump_speed = -20
+        self.obj_id = obj_id or str(uuid1())
 
     def dump(self):
         return {
+            'id': self.obj_id,
             'state': self.state.value,
             'orientation': self.orientation.value,
             'rect': list(self.rect)
@@ -105,8 +108,8 @@ class Character(CharacterLogic, sprite.Sprite):
     COUNTER_DIVIDER = 10
     DEFAULT_SPEED = 1
 
-    def __init__(self, area):
-        super().__init__(area)
+    def __init__(self, area, obj_id=None):
+        super().__init__(area=area, obj_id=obj_id)
         self.images, self.rect = self.load_images()
         self.image = self.images[self.state][self.orientation]
         self.rect.midbottom = area.midbottom
