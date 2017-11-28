@@ -67,7 +67,7 @@ class GameServer:
                     ws.exception()))
             await asyncio.sleep(1/60)
 
-        self.charactes.pop(request.host)
+        self.charactes.pop(character_object.obj_id)
 
     def setup_routes(self, app):
         app.router.add_route('GET', '/', self.input_handler, name='input')
