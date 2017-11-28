@@ -1,6 +1,4 @@
-import asyncio
 import logging
-from multiprocessing import Process
 
 from pyplatformer.game_client import GameClient
 
@@ -9,13 +7,8 @@ logging.basicConfig(level=logging.INFO)
 
 
 def main():
-    client = GameClient()
-    client.initialize_screen()
-    Process(target=client.image_drawer).start()
-    loop = asyncio.get_event_loop()
-    loop.create_task(client.handle_events())
-    loop.create_task(client.handle_messages())
-    loop.run_forever()
+    client = GameClient(server_addres='http://localhost:8000/')
+    client.run()
 
 
 if __name__ == "__main__":
