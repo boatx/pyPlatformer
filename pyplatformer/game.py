@@ -16,7 +16,11 @@ class BaseGame:
         self.back_ground = None
         self.sprites = pygame.sprite.RenderPlain()
 
-    def handle_events(self, event):
+    def handle_events(self):
+        for event in pygame.event.get():
+            self.handle_event(event)
+
+    def handle_event(self, event):
         raise NotImplementedError()
 
     def initialize_screen(self):
@@ -39,11 +43,9 @@ class BaseGame:
         pygame.display.flip()
 
     def run(self):
-        self.initialize_screen()
         clock = pygame.time.Clock()
         while True:
-            for event in pygame.event.get():
-                self.handle_events(event)
+            self.handle_events()
             clock.tick(TARGET_FPS)
             self.redraw_scene()
 
@@ -54,7 +56,7 @@ class Game(BaseGame):
         super().__init__()
         self.hero = None
 
-    def handle_events(self, event):
+    def handle_event(self, event):
 
         if event.type == QUIT:
             pygame.quit()
