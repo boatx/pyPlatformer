@@ -7,14 +7,52 @@ from pyplatformer.character import load_image, Character
 from pyplatformer.config.settings import SCREEN_HEIGHT, SCREEN_WIDTH, TARGET_FPS
 
 
-class Game:
+class BaseGame:
     DEFAULT_BACKGROUND = "gra_bg.png"
+    WINDOW_CAPTION = "The Game"
 
     def __init__(self):
-        self.hero = None
         self.screen = None
         self.back_ground = None
-        self.sprites = None
+        self.sprites = pygame.sprite.RenderPlain()
+
+    def handle_events(self, event):
+        raise NotImplementedError()
+
+    def initialize_screen(self):
+        pygame.init()
+        pygame.display.set_caption(self.WINDOW_CAPTION)
+        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.back_ground, _ = load_image(self.DEFAULT_BACKGROUND)
+        self.draw_empty_screen()
+
+    def draw_empty_screen(self):
+        self.screen.blit(self.back_ground, (0, 0))
+
+    def update_sprites(self):
+        self.sprites.update()
+
+    def redraw_scene(self):
+        self.update_sprites()
+        self.draw_empty_screen()
+        self.sprites.draw(self.screen)
+        pygame.display.flip()
+
+    def run(self):
+        self.initialize_screen()
+        clock = pygame.time.Clock()
+        while True:
+            for event in pygame.event.get():
+                self.handle_events(event)
+            clock.tick(TARGET_FPS)
+            self.redraw_scene()
+
+
+class Game(BaseGame):
+
+    def __init__(self):
+        super().__init__()
+        self.hero = None
 
     def handle_events(self, event):
 
@@ -34,19 +72,9 @@ class Game:
             if event.key in (K_LEFT, K_RIGHT):
                 self.hero.stop()
 
-    def initialize_screen(self):
-        pygame.init()
-        pygame.display.set_caption("The Game")
-        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        self.back_ground, _ = load_image(self.DEFAULT_BACKGROUND)
-        self.draw_empty_screen()
-
-    def draw_empty_screen(self):
-        self.screen.blit(self.back_ground, (0, 0))
-
     def create_sprites(self):
         self.hero = Character(self.screen.get_rect())
-        self.sprites = pygame.sprite.RenderPlain(self.hero)
+        self.sprites.add(self.hero)
 
     def redraw_scene(self):
         self.sprites.update()
@@ -54,13 +82,6 @@ class Game:
         self.sprites.draw(self.screen)
         pygame.display.flip()
 
-    def run(self):
-        self.initialize_screen()
+    def initialize_screen(self):
+        super().initialize_screen()
         self.create_sprites()
-
-        clock = pygame.time.Clock()
-        while True:
-            for event in pygame.event.get():
-                self.handle_events(event)
-            clock.tick(TARGET_FPS)
-            self.redraw_scene()
