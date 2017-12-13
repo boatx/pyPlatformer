@@ -1,27 +1,28 @@
 import asyncio
 import logging
 import sys
+from queue import Empty
 from multiprocessing import Queue, Process
 
 import pygame
 from aiohttp import ClientSession
 from pygame.locals import KEYDOWN, KEYUP, K_ESCAPE, QUIT
 
+from pyplatformer.character import Character, Orientation, State
+from pyplatformer.config.settings import TIME_STEP
 from pyplatformer.game import BaseGame
-from pyplatformer.character import load_image, Character, Orientation, State
-from pyplatformer.config.settings import (
-    SCREEN_HEIGHT, SCREEN_WIDTH, TARGET_FPS, TIME_STEP
-)
+
 
 log = logging.getLogger(__name__)
 
 
 class PygameClient(BaseGame):
 
-    def __init__(self, message_queue):
+    def __init__(self, message_queue, event_queue):
         super().__init__()
         self.players = {}
         self.message_queue = message_queue
+        self.event_queue = event_queue
 
     def create_sprite(self, obj_id):
         player = Character(area=self.screen.get_rect(), obj_id=obj_id)
@@ -39,14 +40,22 @@ class PygameClient(BaseGame):
             player.rect = pygame.Rect(sprite['rect'])
         super().redraw_scene()
 
-    def handle_events(self):
-        return
+    def handle_event(self, event):
+        if event.type == QUIT:
+            pygame.quit()
+            sys.exit()
+        elif event.type == KEYDOWN and event.key == K_ESCAPE:
+            pygame.event.post(pygame.event.Event(QUIT))
+        elif event.type in (KEYDOWN, KEYUP):
+            self.event_queue.put_nowait({'action': event.type, 'key': event.key})
+
 
 
 class GameClient:
     def __init__(self, server_addres):
         self.socket = None
         self.message_queue = Queue()
+        self.event_queue = Queue()
         self.server_addres = server_addres
         self.pygame_client = None
 
@@ -58,30 +67,23 @@ class GameClient:
     async def handle_messages(self):
         while True:
             message = await self.socket.receive_json()
-            self.message_queue.put(message)
+            self.message_queue.put_nowait(message)
             await asyncio.sleep(TIME_STEP)
-
-    def handle_event(self, event):
-        if event.type == QUIT:
-            pygame.quit()
-            sys.exit()
-        elif event.type == KEYDOWN and event.key == K_ESCAPE:
-            pygame.event.post(pygame.event.Event(QUIT))
-        elif event.type in (KEYDOWN, KEYUP):
-            self.socket.send_json({'action': event.type, 'key': event.key})
 
     async def handle_events(self):
         while True:
-            for event in pygame.event.get():
-                self.handle_event(event)
-            await asyncio.sleep(TIME_STEP)
+            try:
+                event = self.event_queue.get_nowait()
+                self.socket.send_json(event)
+            except Empty:
+                await asyncio.sleep(TIME_STEP)
 
     def spawn_drawer_process(self):
+        self.pygame_client.initialize_screen()
         Process(target=self.pygame_client.run).start()
 
     def run(self, loop=None):
-        self.pygame_client = PygameClient(self.message_queue)
-        self.pygame_client.initialize_screen()
+        self.pygame_client = PygameClient(self.message_queue, self.event_queue)
         self.spawn_drawer_process()
         loop = loop or asyncio.get_event_loop()
         loop.run_until_complete(self.connect())
