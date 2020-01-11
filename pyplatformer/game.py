@@ -51,7 +51,6 @@ class BaseGame:
 
 
 class Game(BaseGame):
-
     def __init__(self):
         super().__init__()
         self.hero = None

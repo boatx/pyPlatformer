@@ -6,7 +6,7 @@ def load_image(name, image_dir_path=None):
     """Load image."""
 
     if image_dir_path is None:
-        fullname = os.path.join('data', 'img', name)
+        fullname = os.path.join("data", "img", name)
     else:
         fullname = os.path.join(image_dir_path, name)
 
@@ -17,6 +17,6 @@ def load_image(name, image_dir_path=None):
         else:
             image = image.convert_alpha()
     except pygame.error as e:
-        print('File load has failed:{}'.format(fullname))
+        print("File load has failed:{}".format(fullname))
         raise SystemExit(e.message)
     return image, image.get_rect()

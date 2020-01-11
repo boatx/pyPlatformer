@@ -17,7 +17,6 @@ log = logging.getLogger(__name__)
 
 
 class PygameClient(BaseGame):
-
     def __init__(self, message_queue, event_queue):
         super().__init__()
         self.players = {}
@@ -32,12 +31,12 @@ class PygameClient(BaseGame):
 
     def redraw_scene(self):
         message = self.message_queue.get()
-        for sprite in message.get('objects', []):
-            player_id = sprite['id']
+        for sprite in message.get("objects", []):
+            player_id = sprite["id"]
             player = self.players.get(player_id) or self.create_sprite(player_id)
-            player.orientation = Orientation(sprite['orientation'])
-            player.state = State(sprite['state'])
-            player.rect = pygame.Rect(sprite['rect'])
+            player.orientation = Orientation(sprite["orientation"])
+            player.state = State(sprite["state"])
+            player.rect = pygame.Rect(sprite["rect"])
         super().redraw_scene()
 
     def handle_event(self, event):
@@ -47,8 +46,7 @@ class PygameClient(BaseGame):
         elif event.type == KEYDOWN and event.key == K_ESCAPE:
             pygame.event.post(pygame.event.Event(QUIT))
         elif event.type in (KEYDOWN, KEYUP):
-            self.event_queue.put_nowait({'action': event.type, 'key': event.key})
-
+            self.event_queue.put_nowait({"action": event.type, "key": event.key})
 
 
 class GameClient:
@@ -62,7 +60,7 @@ class GameClient:
     async def connect(self):
         session = ClientSession()
         self.socket = await session.ws_connect(self.server_addres)
-        log.info('connected')
+        log.info("connected")
 
     async def handle_messages(self):
         while True:

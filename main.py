@@ -20,15 +20,15 @@ def single():
     game.run()
 
 
-@manager.option('--port', default=8888, type=int)
-@manager.option('--host', default='localhost', type=str)
+@manager.option("--port", default=8888, type=int)
+@manager.option("--host", default="localhost", type=str)
 def client(host, port):
-    client = GameClient(server_addres='http://{}:{}/'.format(host, port))
+    client = GameClient(server_addres="http://{}:{}/".format(host, port))
     client.run()
 
 
-@manager.option('--port', default=8888, type=int)
-@manager.option('--host', default='localhost', type=str)
+@manager.option("--port", default=8888, type=int)
+@manager.option("--host", default="localhost", type=str)
 def server(host, port):
     game_server = GameServer()
     app = game_server.get_app()

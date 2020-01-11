@@ -45,10 +45,10 @@ class CharacterLogic:
 
     def dump(self):
         return {
-            'id': self.obj_id,
-            'state': self.state.value,
-            'orientation': self.orientation.value,
-            'rect': list(self.rect)
+            "id": self.obj_id,
+            "state": self.state.value,
+            "orientation": self.orientation.value,
+            "rect": list(self.rect),
         }
 
     @property
@@ -130,7 +130,9 @@ class Character(CharacterLogic, sprite.Sprite):
         img2, _ = load_image("walk2.png")
         images[State.WALK][Orientation.RIGHT] = [img1, img2]
         images[State.WALK][Orientation.LEFT] = [
-            change_img_orientation(img1), change_img_orientation(img2)]
+            change_img_orientation(img1),
+            change_img_orientation(img2),
+        ]
 
         return images, rect
 
@@ -146,7 +148,7 @@ class Character(CharacterLogic, sprite.Sprite):
         if frame is not None:
             self.counter = 0
             return image[frame]
-        if self.counter == self.COUNTER_DIVIDER*len(image):
+        if self.counter == self.COUNTER_DIVIDER * len(image):
             self.counter = 0
         index = self.counter // self.COUNTER_DIVIDER
         self.counter += 1

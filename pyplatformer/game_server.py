@@ -22,9 +22,9 @@ class GameServer:
         return CharacterLogic(pygame.Rect(self.AREA), pygame.Rect(self.RECT))
 
     async def handle_message(self, character_object, message):
-        action = message['action']
-        key = message['key']
-        log.info('input_message:{}'.format(message))
+        action = message["action"]
+        key = message["key"]
+        log.info("input_message:{}".format(message))
         if action == KEYDOWN:
             if key == K_LEFT:
                 character_object.move(-1)
@@ -40,13 +40,13 @@ class GameServer:
         while True:
             objects = []
             for player in self.players.values():
-                obj = player['object']
+                obj = player["object"]
                 obj.update()
                 objects.append(obj.dump())
 
             for player in self.players.values():
-                player['socket'].send_json({'objects': objects})
-            await asyncio.sleep(1/60)
+                player["socket"].send_json({"objects": objects})
+            await asyncio.sleep(1 / 60)
 
     async def send(self, app):
         self.loop.create_task(self.send_handler())
@@ -56,21 +56,24 @@ class GameServer:
         await ws.prepare(request)
         character_object = self.create_character()
         self.players[character_object.obj_id] = {
-            'socket': ws, 'object': character_object}
-        log.info('created: {}'.format(character_object.obj_id))
+            "socket": ws,
+            "object": character_object,
+        }
+        log.info("created: {}".format(character_object.obj_id))
         async for msg in ws:
             if msg.type == WSMsgType.TEXT:
-                log.info('{} {}'.format(character_object.obj_id, msg.json()))
+                log.info("{} {}".format(character_object.obj_id, msg.json()))
                 await self.handle_message(character_object, msg.json())
             elif msg.type == WSMsgType.ERROR:
-                log.error('ws connection closed with exception {}'.format(
-                    ws.exception()))
-            await asyncio.sleep(1/60)
+                log.error(
+                    "ws connection closed with exception {}".format(ws.exception())
+                )
+            await asyncio.sleep(1 / 60)
 
         self.charactes.pop(character_object.obj_id)
 
     def setup_routes(self, app):
-        app.router.add_route('GET', '/', self.input_handler, name='input')
+        app.router.add_route("GET", "/", self.input_handler, name="input")
 
     def get_app(self):
         app = web.Application()
