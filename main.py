@@ -1,39 +1,42 @@
 import logging
 
+import click
 from aiohttp import web
-from command_manager import Manager
 
 from pyplatformer.game import Game
 from pyplatformer.game_client import GameClient
 from pyplatformer.game_server import GameServer
 
-
 logging.basicConfig(level=logging.INFO)
 
-manager = Manager()
+
+@click.group()
+def cli() -> None: ...
 
 
-@manager.command
-def single():
+@cli.command()
+def single() -> None:
     game = Game()
     game.initialize_screen()
     game.run()
 
 
-@manager.option("--port", default=8888, type=int)
-@manager.option("--host", default="localhost", type=str)
-def client(host, port):
-    client = GameClient(server_addres="http://{}:{}/".format(host, port))
+@cli.command()
+@click.option("--port", default=8888, type=int)
+@click.option("--host", default="localhost", type=str)
+def client(host: str, port: int) -> None:
+    client = GameClient(server_addres=f"http://{host}:{port}/")
     client.run()
 
 
-@manager.option("--port", default=8888, type=int)
-@manager.option("--host", default="localhost", type=str)
-def server(host, port):
+@cli.command()
+@click.option("--port", default=8888, type=int)
+@click.option("--host", default="localhost", type=str)
+def server(host: str, port: int) -> None:
     game_server = GameServer()
     app = game_server.get_app()
     web.run_app(app, host=host, port=port, loop=game_server.loop)
 
 
 if __name__ == "__main__":
-    manager.run_command()
+    cli()
