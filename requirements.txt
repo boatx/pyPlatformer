@@ -1,3 +1,0 @@
-pygame
-aiohttp
-git+https://github.com/boatx/command_manager@v1.0

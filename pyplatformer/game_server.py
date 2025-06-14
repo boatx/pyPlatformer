@@ -2,8 +2,8 @@ import asyncio
 import logging
 
 import pygame
-from aiohttp import web, WSMsgType
-from pygame.locals import KEYDOWN, KEYUP, K_LEFT, K_RIGHT, K_UP
+from aiohttp import WSMsgType, web
+from pygame.locals import K_LEFT, K_RIGHT, K_UP, KEYDOWN, KEYUP
 
 from pyplatformer.character import CharacterLogic
 
@@ -67,9 +67,7 @@ class GameServer:
                 log.info("%s %s", character_object.obj_id, msg.json())
                 await self.handle_message(character_object, msg.json())
             elif msg.type == WSMsgType.ERROR:
-                log.error(
-                    "ws connection closed with exception %s", ws.exception()
-                )
+                log.error("ws connection closed with exception %s", ws.exception())
             await asyncio.sleep(1 / 60)
 
         self.players.pop(character_object.obj_id, None)

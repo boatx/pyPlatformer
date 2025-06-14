@@ -1,17 +1,16 @@
 import asyncio
 import logging
 import sys
+from multiprocessing import Process, Queue
 from queue import Empty
-from multiprocessing import Queue, Process
 
 import pygame
 from aiohttp import ClientSession
-from pygame.locals import KEYDOWN, KEYUP, K_ESCAPE, QUIT
+from pygame.locals import K_ESCAPE, KEYDOWN, KEYUP, QUIT
 
 from pyplatformer.character import Character, Orientation, State
 from pyplatformer.config.settings import TIME_STEP
 from pyplatformer.game import BaseGame
-
 
 log = logging.getLogger(__name__)
 
@@ -82,6 +81,7 @@ class GameClient:
             pygame_client = PygameClient(self.message_queue, self.event_queue)
             pygame_client.initialize_screen()
             pygame_client.run()
+
         Process(target=run_pygame).start()
 
     def run(self, loop=None):

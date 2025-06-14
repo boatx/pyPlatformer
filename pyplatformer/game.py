@@ -1,9 +1,9 @@
 import sys
 
 import pygame
-from pygame.locals import KEYDOWN, KEYUP, K_ESCAPE, K_LEFT, K_RIGHT, K_UP, QUIT
+from pygame.locals import K_ESCAPE, K_LEFT, K_RIGHT, K_UP, KEYDOWN, KEYUP, QUIT
 
-from pyplatformer.character import load_image, Character
+from pyplatformer.character import Character, load_image
 from pyplatformer.config.settings import SCREEN_HEIGHT, SCREEN_WIDTH, TARGET_FPS
 
 
@@ -53,7 +53,6 @@ class Game(BaseGame):
         self.hero = None
 
     def handle_event(self, event):
-
         if event.type == QUIT:
             pygame.quit()
             sys.exit()
