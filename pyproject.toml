@@ -67,3 +67,7 @@ select = [
     "C90",   # mccabe
     "PERF",  # perflint
 ]
+
+[tool.mypy]
+disallow_untyped_defs = true
+python_version = 3.11

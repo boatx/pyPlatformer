@@ -1,9 +1,15 @@
 import os
+from typing import NamedTuple
 
 import pygame
 
 
-def load_image(name, image_dir_path=None):
+class ImageWithRect(NamedTuple):
+    image: pygame.Surface
+    rect: pygame.Rect
+
+
+def load_image(name: str, image_dir_path: str | None = None) -> ImageWithRect:
     """Load image."""
 
     if image_dir_path is None:
@@ -19,5 +25,5 @@ def load_image(name, image_dir_path=None):
             image = image.convert_alpha()
     except pygame.error as e:
         print("File load has failed:{}".format(fullname))
-        raise SystemExit(e.message)
-    return image, image.get_rect()
+        raise SystemExit("Failed to load image") from e
+    return ImageWithRect(image, image.get_rect())
