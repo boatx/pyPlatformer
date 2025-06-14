@@ -1,8 +1,9 @@
-import os
+from pathlib import Path
 from typing import NamedTuple
 
 import pygame
 
+DEFAULT_IMAGE_PATH = Path("data", "img")
 
 class ImageWithRect(NamedTuple):
     image: pygame.Surface
@@ -13,17 +14,15 @@ def load_image(name: str, image_dir_path: str | None = None) -> ImageWithRect:
     """Load image."""
 
     if image_dir_path is None:
-        fullname = os.path.join("data", "img", name)
+        _path = DEFAULT_IMAGE_PATH / name
     else:
-        fullname = os.path.join(image_dir_path, name)
+        _path = Path(image_dir_path, name)
 
     try:
-        image = pygame.image.load(fullname)
-        if image.get_alpha is None:
-            image = image.convert()
-        else:
-            image = image.convert_alpha()
+        image = pygame.image.load(_path)
+        converted_iamge = (
+            image.convert() if image.get_alpha is None else image.convert_alpha()
+        )
     except pygame.error as e:
-        print("File load has failed:{}".format(fullname))
         raise SystemExit("Failed to load image") from e
-    return ImageWithRect(image, image.get_rect())
+    return ImageWithRect(converted_iamge, image.get_rect())

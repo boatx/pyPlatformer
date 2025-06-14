@@ -133,7 +133,7 @@ class Character(CharacterLogic, sprite.Sprite):  # type: ignore
     def __init__(self, area: Rect, obj_id: str | None = None):
         super().__init__(area=area, obj_id=obj_id)
         self.images, self.rect = self.load_images()
-        self.image = self.images[self.state][self.orientation] # type: ignore
+        self.image = self.images[self.state][self.orientation]  # type: ignore
         self.rect.midbottom = area.midbottom
         self.counter = 0
 

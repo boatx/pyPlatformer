@@ -48,9 +48,8 @@ class GameServer:
                 character.move(1)
             elif key == K_UP:
                 character.jump()
-        elif action == KEYUP:
-            if key in (K_LEFT, K_RIGHT):
-                character.stop()
+        elif action == KEYUP and key in (K_LEFT, K_RIGHT):
+            character.stop()
 
     async def send_handler(self) -> None:
         while True:

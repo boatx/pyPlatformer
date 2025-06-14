@@ -66,6 +66,15 @@ select = [
     "PL",    # pylint
     "C90",   # mccabe
     "PERF",  # perflint
+    "ASYNC", # flake8-async
+    "B",     # flake8-bugbear
+    "A",     # flake8-builtins
+    "C4",    # flake8-comprehensions
+    "RET",   # flake8-return
+    "T20",   # flake8-print
+    "PTH",   # flake8-usepathlib
+    "SIM",   # flake8-simplify
+    "FLY",   # flynt
 ]
 
 [tool.mypy]
