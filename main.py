@@ -32,7 +32,7 @@ def client(host, port):
 def server(host, port):
     game_server = GameServer()
     app = game_server.get_app()
-    web.run_app(app, host=host, port=port)
+    web.run_app(app, host=host, port=port, loop=game_server.loop)
 
 
 if __name__ == "__main__":

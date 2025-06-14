@@ -55,7 +55,6 @@ class GameClient:
         self.message_queue = Queue()
         self.event_queue = Queue()
         self.server_addres = server_addres
-        self.pygame_client = None
 
     async def connect(self):
         session = ClientSession()
@@ -65,6 +64,7 @@ class GameClient:
     async def handle_messages(self):
         while True:
             message = await self.socket.receive_json()
+            log.info("Received message from server: %s", message)
             self.message_queue.put_nowait(message)
             await asyncio.sleep(TIME_STEP)
 
@@ -72,16 +72,19 @@ class GameClient:
         while True:
             try:
                 event = self.event_queue.get_nowait()
-                self.socket.send_json(event)
+                log.info("Received event from game: %s sending to server", event)
+                await self.socket.send_json(event)
             except Empty:
                 await asyncio.sleep(TIME_STEP)
 
     def spawn_drawer_process(self):
-        self.pygame_client.initialize_screen()
-        Process(target=self.pygame_client.run).start()
+        def run_pygame() -> None:
+            pygame_client = PygameClient(self.message_queue, self.event_queue)
+            pygame_client.initialize_screen()
+            pygame_client.run()
+        Process(target=run_pygame).start()
 
     def run(self, loop=None):
-        self.pygame_client = PygameClient(self.message_queue, self.event_queue)
         self.spawn_drawer_process()
         loop = loop or asyncio.get_event_loop()
         loop.run_until_complete(self.connect())

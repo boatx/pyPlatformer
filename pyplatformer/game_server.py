@@ -24,7 +24,7 @@ class GameServer:
     async def handle_message(self, character_object, message):
         action = message["action"]
         key = message["key"]
-        log.info("input_message:{}".format(message))
+        log.info("Input message: %s", message)
         if action == KEYDOWN:
             if key == K_LEFT:
                 character_object.move(-1)
@@ -45,7 +45,8 @@ class GameServer:
                 objects.append(obj.dump())
 
             for player in self.players.values():
-                player["socket"].send_json({"objects": objects})
+                log.info("Sending to %s objects %s", player, objects)
+                await player["socket"].send_json({"objects": objects})
             await asyncio.sleep(1 / 60)
 
     async def send(self, app):
@@ -59,18 +60,19 @@ class GameServer:
             "socket": ws,
             "object": character_object,
         }
-        log.info("created: {}".format(character_object.obj_id))
+        log.info("created: %s", character_object.obj_id)
         async for msg in ws:
+            log.info("message: %s", msg)
             if msg.type == WSMsgType.TEXT:
-                log.info("{} {}".format(character_object.obj_id, msg.json()))
+                log.info("%s %s", character_object.obj_id, msg.json())
                 await self.handle_message(character_object, msg.json())
             elif msg.type == WSMsgType.ERROR:
                 log.error(
-                    "ws connection closed with exception {}".format(ws.exception())
+                    "ws connection closed with exception %s", ws.exception()
                 )
             await asyncio.sleep(1 / 60)
 
-        self.charactes.pop(character_object.obj_id)
+        self.players.pop(character_object.obj_id, None)
 
     def setup_routes(self, app):
         app.router.add_route("GET", "/", self.input_handler, name="input")

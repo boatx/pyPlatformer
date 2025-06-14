@@ -33,11 +33,8 @@ class BaseGame:
     def draw_empty_screen(self):
         self.screen.blit(self.back_ground, (0, 0))
 
-    def update_sprites(self):
-        self.sprites.update()
-
     def redraw_scene(self):
-        self.update_sprites()
+        self.sprites.update()
         self.draw_empty_screen()
         self.sprites.draw(self.screen)
         pygame.display.flip()
