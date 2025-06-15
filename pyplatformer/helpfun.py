@@ -5,6 +5,7 @@ import pygame
 
 DEFAULT_IMAGE_PATH = Path("data", "img")
 
+
 class ImageWithRect(NamedTuple):
     image: pygame.Surface
     rect: pygame.Rect
