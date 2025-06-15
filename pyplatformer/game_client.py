@@ -27,8 +27,8 @@ class PygameEvent(TypedDict):
 
 
 class PygameClient(BaseGame):
-    message_queue: Queue[ServerMessage]
-    event_queue: Queue[PygameEvent]
+    message_queue: Queue
+    event_queue: Queue
     players: dict[str, Character]
 
     def __init__(self, message_queue: Queue, event_queue: Queue):
@@ -62,8 +62,8 @@ class PygameClient(BaseGame):
 
 
 class GameClient:
-    message_queue: Queue[ServerMessage]
-    event_queue: Queue[PygameEvent]
+    message_queue: Queue
+    event_queue: Queue
     socket: None | ClientWebSocketResponse
 
     def __init__(self, server_addres: str):

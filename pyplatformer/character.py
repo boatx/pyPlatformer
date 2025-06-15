@@ -50,7 +50,6 @@ class CharacterLogic:
         rect: Rect,
         obj_id: str | None = None,
     ) -> None:
-        super().__init__()
         self.area = area
         self.state = State.NORMAL
         self.orientation = Orientation.RIGHT
@@ -81,8 +80,6 @@ class CharacterLogic:
         return self.state in (State.JUMP, State.DOUBLE_JUMP)
 
     def update(self) -> None:
-        if not self.rect:
-            raise ValueError("No rect")
         if self.is_in_air:
             # gravity
             self.vel_y += GRAVITY
