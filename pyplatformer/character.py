@@ -1,6 +1,6 @@
 from collections import defaultdict
 from enum import IntEnum
-from typing import NamedTuple, TypedDict
+from typing import Any, NamedTuple, TypedDict
 from uuid import uuid1
 
 from pygame import Rect, Surface, sprite, transform
@@ -47,7 +47,7 @@ class CharacterLogic:
     def __init__(
         self,
         area: Rect,
-        rect: Rect | None = None,
+        rect: Rect,
         obj_id: str | None = None,
     ) -> None:
         super().__init__()
@@ -63,13 +63,18 @@ class CharacterLogic:
         self.jump_speed = -20
         self.obj_id = obj_id or str(uuid1())
 
-    def dump(self) -> dict:
+    def dump(self) -> CharacterDict:
         return {
             "id": self.obj_id,
             "state": self.state,
             "orientation": self.orientation,
             "rect": list(self.rect or []),
         }
+
+    def load(self, message: CharacterDict) -> None:
+        self.rect = Rect(message["rect"])
+        self.state = State(message["state"])
+        self.orientation = Orientation(message["orientation"])
 
     @property
     def is_in_air(self) -> bool:
@@ -123,21 +128,30 @@ class CharacterLogic:
             self.state = State.NORMAL
 
 
-# TODO fix use composition
-class Character(CharacterLogic, sprite.Sprite):  # type: ignore
+class Character(sprite.Sprite):
     """Character class"""
 
     COUNTER_DIVIDER = 10
     DEFAULT_SPEED = 1.0
 
     def __init__(self, area: Rect, obj_id: str | None = None):
-        super().__init__(area=area, obj_id=obj_id)
+        super().__init__()
         self.images, self.rect = self.load_images()
-        self.image = self.images[self.state][self.orientation]  # type: ignore
+        self.logic = CharacterLogic(area=area, rect=self.rect, obj_id=obj_id)
         self.rect.midbottom = area.midbottom
         self.counter = 0
+        self.update_image()
 
-    def load_images(self) -> CharacterImages:
+    @property
+    def state(self) -> State:
+        return self.logic.state
+
+    @property
+    def orientation(self) -> Orientation:
+        return self.logic.orientation
+
+    @staticmethod
+    def load_images() -> CharacterImages:
         images: defaultdict[State, dict[Orientation, Surface | list[Surface]]] = (
             defaultdict(dict)
         )
@@ -177,4 +191,12 @@ class Character(CharacterLogic, sprite.Sprite):  # type: ignore
 
     def update(self) -> None:
         super().update()
+        self.logic.update()
         self.update_image()
+
+    def load(self, message: CharacterDict) -> None:
+        self.logic.load(message)
+        self.rect = self.logic.rect
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self.logic, name)

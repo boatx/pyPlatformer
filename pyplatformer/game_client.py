@@ -3,22 +3,32 @@ import logging
 import sys
 from multiprocessing import Process, Queue
 from queue import Empty
+from typing import TypedDict
 
 import pygame
 from aiohttp import ClientSession, ClientWebSocketResponse
 from pygame.event import Event
 from pygame.locals import K_ESCAPE, KEYDOWN, KEYUP, QUIT
 
-from pyplatformer.character import Character, Orientation, State
+from pyplatformer.character import Character, CharacterDict
 from pyplatformer.config.settings import TIME_STEP
 from pyplatformer.game import BaseGame
 
 log = logging.getLogger(__name__)
 
 
+class ServerMessage(TypedDict):
+    objects: list[CharacterDict]
+
+
+class PygameEvent(TypedDict):
+    action: int
+    key: int
+
+
 class PygameClient(BaseGame):
-    message_queue: Queue
-    event_queue: Queue
+    message_queue: Queue[ServerMessage]
+    event_queue: Queue[PygameEvent]
     players: dict[str, Character]
 
     def __init__(self, message_queue: Queue, event_queue: Queue):
@@ -34,13 +44,11 @@ class PygameClient(BaseGame):
         return player
 
     def redraw_scene(self) -> None:
-        message = self.message_queue.get()
+        message: ServerMessage = self.message_queue.get()
         for sprite in message.get("objects", []):
             player_id = sprite["id"]
             player = self.players.get(player_id) or self.create_sprite(player_id)
-            player.orientation = Orientation(sprite["orientation"])
-            player.state = State(sprite["state"])
-            player.rect = pygame.Rect(sprite["rect"])
+            player.load(sprite)
         super().redraw_scene()
 
     def handle_event(self, event: Event) -> None:
@@ -54,8 +62,8 @@ class PygameClient(BaseGame):
 
 
 class GameClient:
-    message_queue: Queue
-    event_queue: Queue
+    message_queue: Queue[ServerMessage]
+    event_queue: Queue[PygameEvent]
     socket: None | ClientWebSocketResponse
 
     def __init__(self, server_addres: str):
