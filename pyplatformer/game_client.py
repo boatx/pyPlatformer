@@ -1,9 +1,10 @@
 import asyncio
 import logging
 import sys
+from contextlib import asynccontextmanager
 from multiprocessing import Process, Queue
 from queue import Empty
-from typing import TypedDict
+from typing import AsyncIterator, TypedDict
 
 import pygame
 from aiohttp import ClientSession, ClientWebSocketResponse
@@ -64,39 +65,36 @@ class PygameClient(BaseGame):
 class GameClient:
     message_queue: Queue
     event_queue: Queue
-    socket: None | ClientWebSocketResponse
 
     def __init__(self, server_addres: str):
-        self.socket = None
         self.message_queue = Queue()
         self.event_queue = Queue()
         self.server_addres = server_addres
 
-    async def connect(self) -> None:
-        session = ClientSession()
-        self.socket = await session.ws_connect(self.server_addres)
-        log.info("connected")
+    @asynccontextmanager
+    async def connect(self) -> AsyncIterator[ClientWebSocketResponse]:
+        async with (
+            ClientSession() as session,
+            session.ws_connect(self.server_addres) as socket,
+        ):
+            yield socket
 
-    async def handle_messages(self) -> None:
-        if not self.socket:
-            raise ValueError("Not connected")
+    async def handle_messages(self, socket: ClientWebSocketResponse) -> None:
         while True:
-            message = await self.socket.receive_json()
-            log.info("Received message from server: %s", message)
+            message: ServerMessage = await socket.receive_json()
+            log.debug("Received message from server: %s", message)
             self.message_queue.put_nowait(message)
             await asyncio.sleep(TIME_STEP)
 
-    async def handle_events(self) -> None:
-        if not self.socket:
-            raise ValueError("Not connected")
+    async def handle_events(self, socket: ClientWebSocketResponse) -> None:
         while True:
             try:
-                event = self.event_queue.get_nowait()
+                event: PygameEvent = self.event_queue.get_nowait()
             except Empty:
                 await asyncio.sleep(TIME_STEP)
             else:
-                log.info("Received event from game: %s sending to server", event)
-                await self.socket.send_json(event)
+                log.debug("Received event from game: %s sending to server", event)
+                await socket.send_json(event)
 
     def spawn_drawer_process(self) -> None:
         def run_pygame() -> None:
@@ -104,12 +102,15 @@ class GameClient:
             pygame_client.initialize_screen()
             pygame_client.run()
 
-        Process(target=run_pygame).start()
+        Process(target=run_pygame, daemon=True).start()
 
-    def run(self, loop: None | asyncio.AbstractEventLoop = None) -> None:
+    def run(self) -> None:
         self.spawn_drawer_process()
-        loop = loop or asyncio.get_event_loop()
-        loop.run_until_complete(self.connect())
-        loop.create_task(self.handle_events())
-        loop.create_task(self.handle_messages())
-        loop.run_forever()
+        asyncio.run(self._run())
+
+    async def _run(self) -> None:
+        async with self.connect() as socket:
+            asyncio.create_task(self.handle_events(socket))
+            asyncio.create_task(self.handle_messages(socket))
+            done = asyncio.Event()
+            await done.wait()
