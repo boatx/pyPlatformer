@@ -26,6 +26,8 @@ def single() -> None:
 @click.option("--host", default="localhost", type=str)
 def client(host: str, port: int) -> None:
     client = GameClient(server_addres=f"http://{host}:{port}/")
+    client.spawn_game_server_client()
+    client.initialize_screen()
     client.run()
 
 
