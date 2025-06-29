@@ -27,16 +27,17 @@ class PygameEvent(TypedDict):
     key: int
 
 
-class PygameClient(BaseGame):
+class GameClient(BaseGame):
     message_queue: Queue
     event_queue: Queue
     players: dict[str, Character]
 
-    def __init__(self, message_queue: Queue, event_queue: Queue):
+    def __init__(self, server_addres: str):
         super().__init__()
         self.players = {}
-        self.message_queue = message_queue
-        self.event_queue = event_queue
+        self.message_queue = Queue()
+        self.event_queue = Queue()
+        self.server_addres = server_addres
 
     def create_sprite(self, obj_id: str) -> Character:
         player = Character(area=self.screen.get_rect(), obj_id=obj_id)
@@ -61,14 +62,22 @@ class PygameClient(BaseGame):
         elif event.type in (KEYDOWN, KEYUP):
             self.event_queue.put_nowait({"action": event.type, "key": event.key})
 
+    def spawn_game_server_client(self) -> None:
+        server_client = GameServerClient(
+            server_addres=self.server_addres,
+            message_queue=self.message_queue,
+            event_queue=self.event_queue,
+        )
+        Process(target=server_client.run, daemon=True).start()
 
-class GameClient:
+
+class GameServerClient:
     message_queue: Queue
     event_queue: Queue
 
-    def __init__(self, server_addres: str):
-        self.message_queue = Queue()
-        self.event_queue = Queue()
+    def __init__(self, server_addres: str, message_queue: Queue, event_queue: Queue):
+        self.message_queue = message_queue
+        self.event_queue = event_queue
         self.server_addres = server_addres
 
     @asynccontextmanager
@@ -96,16 +105,7 @@ class GameClient:
                 log.debug("Received event from game: %s sending to server", event)
                 await socket.send_json(event)
 
-    def spawn_drawer_process(self) -> None:
-        def run_pygame() -> None:
-            pygame_client = PygameClient(self.message_queue, self.event_queue)
-            pygame_client.initialize_screen()
-            pygame_client.run()
-
-        Process(target=run_pygame, daemon=True).start()
-
     def run(self) -> None:
-        self.spawn_drawer_process()
         asyncio.run(self._run())
 
     async def _run(self) -> None:
